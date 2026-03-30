@@ -152,6 +152,12 @@ docker compose up -d
 curl http://<OMV-IP>:8087/health
 ```
 
+6. Webinterface öffnen:
+
+```text
+http://<OMV-IP>:8087/ui
+```
+
 ## 5. Beispiel `.env`
 
 ```env
@@ -190,6 +196,8 @@ curl http://localhost:8087/health
 ```bash
 curl -X POST http://localhost:8087/scan
 ```
+
+Hinweis: `/scan` ist ein `POST`-Endpoint.
 
 ### Spiele auflisten
 

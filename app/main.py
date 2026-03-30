@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.core.config import get_settings
@@ -25,6 +27,9 @@ app = FastAPI(
     description="NAS-side cache orchestration service for legal PS3 backup handling.",
 )
 app.include_router(api_router)
+
+ui_dir = Path(__file__).resolve().parent / "ui"
+app.mount("/ui/static", StaticFiles(directory=ui_dir / "static"), name="ui-static")
 
 
 @app.on_event("startup")
@@ -63,6 +68,16 @@ def root() -> dict[str, str]:
         "status": "running",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+@app.get("/ui", include_in_schema=False)
+def ui_index() -> FileResponse:
+    return FileResponse(ui_dir / "index.html")
+
+
+@app.get("/ui/", include_in_schema=False)
+def ui_index_trailing() -> FileResponse:
+    return FileResponse(ui_dir / "index.html")
 
 
 @app.exception_handler(HTTPException)

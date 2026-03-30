@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PS3 Cache Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ui/static/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+
+    <header class="topbar">
+      <div>
+        <h1>PS3 Cache Hub</h1>
+        <p>NAS-Interface für Spiele, Targets und Cache-Jobs</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshAllBtn" class="btn btn-secondary">Alles aktualisieren</button>
+        <button id="scanBtn" class="btn btn-primary">Scan starten</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel health-panel">
+        <h2>Systemstatus</h2>
+        <div id="healthGrid" class="health-grid"></div>
+        <p id="lastUpdated" class="muted">Noch keine Daten geladen.</p>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Spiele</h2>
+          <label class="toggle">
+            <input id="hideAppleDouble" type="checkbox" checked />
+            <span>._ Dateien ausblenden</span>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Datei</th>
+                <th>Plattform</th>
+                <th>Titel</th>
+                <th>Größe</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody id="gamesTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Targets</h2>
+        </div>
+
+        <form id="targetForm" class="form-grid">
+          <input name="name" placeholder="Name" required />
+          <input name="ip_address" placeholder="IP-Adresse" required />
+          <input name="ftp_port" type="number" min="1" max="65535" value="21" placeholder="FTP-Port" required />
+          <input name="webman_port" type="number" min="1" max="65535" placeholder="webMAN-Port (optional)" />
+          <input name="ftp_username" placeholder="FTP-Benutzer (optional)" />
+          <input name="ftp_password" type="password" placeholder="FTP-Passwort (optional)" />
+          <input name="target_path" value="/dev_hdd0/PS3ISO" placeholder="Zielpfad" required />
+          <button class="btn btn-primary" type="submit">Target anlegen</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>IP</th>
+                <th>FTP</th>
+                <th>Pfad</th>
+                <th>Kapazität</th>
+              </tr>
+            </thead>
+            <tbody id="targetsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Cache-Job starten</h2>
+        <form id="jobForm" class="form-grid job-form">
+          <select id="jobGameId" required></select>
+          <select id="jobTargetId" required></select>
+          <label class="toggle wide">
+            <input id="jobAutoMount" type="checkbox" />
+            <span>Auto-Mount via webMAN</span>
+          </label>
+          <button class="btn btn-primary" type="submit">Job erstellen</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Jobs</h2>
+          <span class="muted">Auto-Refresh alle 5 Sekunden</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Spiel</th>
+                <th>Target</th>
+                <th>Fortschritt</th>
+                <th>Bytes</th>
+                <th>Fehler</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody id="jobsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="/ui/static/app.js" defer></script>
+  </body>
+</html>
