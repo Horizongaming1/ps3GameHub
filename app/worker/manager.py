@@ -128,7 +128,9 @@ class WorkerManager:
             job.finished_at = None
             job.error_message = None
             job.attempt_count += 1
-            job.total_bytes = game.size_bytes
+            sidecar_key = self._resolve_sidecar_key(Path(game.full_path), game.platform_guess)
+            sidecar_key_size = sidecar_key.stat().st_size if sidecar_key else 0
+            job.total_bytes = game.size_bytes + sidecar_key_size
             self._add_job_event(db, job.id, "job_started", "Worker started processing")
             db.commit()
 
@@ -166,16 +168,38 @@ class WorkerManager:
                     last_progress_commit = now
 
             try:
-                upload_result = transport.upload_file(
-                    source_path=Path(game.full_path),
+                source_path = Path(game.full_path)
+                upload_result = self._upload_with_offset(
+                    transport=transport,
+                    source_path=source_path,
                     target=target,
+                    offset_bytes=0,
                     on_progress=on_progress,
                     should_cancel=should_cancel,
                 )
 
+                transferred_total = upload_result.transferred_bytes
+                if sidecar_key:
+                    key_upload_result = self._upload_with_offset(
+                        transport=transport,
+                        source_path=sidecar_key,
+                        target=target,
+                        offset_bytes=transferred_total,
+                        on_progress=on_progress,
+                        should_cancel=should_cancel,
+                    )
+                    transferred_total += key_upload_result.transferred_bytes
+                    self._add_job_event(
+                        db,
+                        job.id,
+                        "key_file_uploaded",
+                        f"Sidecar key uploaded to {key_upload_result.remote_path}",
+                    )
+                    db.commit()
+
                 job.status = JobStatus.COMPLETED.value
                 job.progress_percent = 100.0 if job.total_bytes > 0 else 0.0
-                job.transferred_bytes = upload_result.transferred_bytes
+                job.transferred_bytes = transferred_total
                 job.finished_at = self._now()
                 job.error_message = None
 
@@ -285,6 +309,38 @@ class WorkerManager:
 
             if running_jobs or queued_cancelled_jobs:
                 db.commit()
+
+    def _upload_with_offset(
+        self,
+        transport: FtpTransport,
+        source_path: Path,
+        target: Target,
+        offset_bytes: int,
+        on_progress,
+        should_cancel,
+    ):
+        def on_file_progress(file_transferred: int) -> None:
+            on_progress(offset_bytes + file_transferred)
+
+        return transport.upload_file(
+            source_path=source_path,
+            target=target,
+            on_progress=on_file_progress,
+            should_cancel=should_cancel,
+        )
+
+    def _resolve_sidecar_key(self, source_path: Path, platform_guess: str) -> Path | None:
+        if platform_guess != "PS3":
+            return None
+
+        candidates = [
+            source_path.with_suffix(".key"),
+            source_path.with_suffix(".KEY"),
+        ]
+        for candidate in candidates:
+            if candidate.exists() and candidate.is_file():
+                return candidate
+        return None
 
     def _touch_heartbeat(self) -> None:
         with self._state_lock:

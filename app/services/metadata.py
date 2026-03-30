@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import re
 
-GAME_ID_PATTERN = re.compile(r"([A-Z]{4}\d{5})")
+GAME_ID_PATTERN = re.compile(r"([A-Z]{4})[-_\s]?(\d{5})")
 PS3_PREFIXES = {
     "BCES",
     "BCUS",
@@ -19,14 +19,21 @@ PS3_PREFIXES = {
 PS2_PREFIXES = {"SCES", "SCUS", "SLES", "SLUS"}
 
 
-def extract_game_metadata(filename: str) -> dict[str, str | None]:
+def extract_game_metadata(
+    filename: str,
+    folder_platform: str | None = None,
+) -> dict[str, str | None]:
     stem = Path(filename).stem
     normalized = stem.upper()
 
     match = GAME_ID_PATTERN.search(normalized)
-    game_id = match.group(1) if match else None
+    game_id = f"{match.group(1)}{match.group(2)}" if match else None
 
-    platform = _guess_platform(game_id=game_id, filename=normalized)
+    platform = _guess_platform(
+        game_id=game_id,
+        filename=normalized,
+        folder_platform=folder_platform,
+    )
     title = _guess_title(stem=stem, game_id=game_id)
 
     return {
@@ -36,7 +43,14 @@ def extract_game_metadata(filename: str) -> dict[str, str | None]:
     }
 
 
-def _guess_platform(game_id: str | None, filename: str) -> str:
+def _guess_platform(
+    game_id: str | None,
+    filename: str,
+    folder_platform: str | None = None,
+) -> str:
+    if folder_platform in {"PS3", "PS2", "PACKS"}:
+        return folder_platform
+
     if game_id:
         prefix = game_id[:4]
         if prefix in PS3_PREFIXES or prefix.startswith("BL"):

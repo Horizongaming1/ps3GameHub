@@ -28,7 +28,7 @@ Das MVP fokussiert auf die NAS-Seite:
 - `FastAPI` als REST-API
 - `SQLite` als zentrale Persistenz
 - `WorkerManager` im selben Container (ein aktiver Job gleichzeitig)
-- `GameScanner` für rekursiven `.iso`-Scan im Library-Ordner
+- `GameScanner` für rekursiven Scan von `.iso`, `.bin`, `.cue`, `.pkg` im Library-Ordner
 - `FtpTransport` über `TargetTransport`-Abstraktion
 - `WebmanService` als gekapselter HTTP-Trigger
 
@@ -46,6 +46,7 @@ Das MVP fokussiert auf die NAS-Seite:
 - chunkweise FTP-Übertragung mit Fortschritts-Updates
 - Cancel-Flag wird periodisch geprüft
 - Retry-Struktur vorhanden (`attempt_count` + `max_retries`)
+- Für PS3-Dateien wird eine vorhandene Sidecar-`*.key` automatisch mit übertragen
 
 ## 3. Verzeichnisstruktur
 
@@ -286,7 +287,7 @@ Damit kann die Homebrew-App im ersten Schritt als reiner API-Client umgesetzt we
 2. Kapazitäten werden im MVP manuell gepflegt (`/targets/{id}/capacity`).
 3. webMAN-Trigger nutzt aktuell `GET /mount.ps3<remote_path>`.
 4. Zugangsdaten werden in SQLite gespeichert (nicht verschlüsselt, aber nicht geloggt).
-5. Scanner verarbeitet nur `.iso` und nur Metadaten (kein Dateiinhalt).
+5. Scanner verarbeitet `.iso`, `.bin`, `.cue`, `.pkg` (keine `.key`-Einträge in der Spieleliste) und nur Metadaten.
 
 ## 11. ARM64 / x86_64
 

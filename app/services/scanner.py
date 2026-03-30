@@ -15,6 +15,11 @@ from app.services.metadata import extract_game_metadata
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_EXTENSIONS = {".iso", ".bin", ".cue", ".pkg"}
+IGNORED_EXTENSIONS = {".key"}
+IGNORED_FILENAME_PREFIXES = ("._",)
+IGNORED_FILENAMES = {".ds_store"}
+
 
 @dataclass
 class ScanSummary:
@@ -59,7 +64,11 @@ class GameScanner:
             stat = resolved.stat()
             scanned_files += 1
 
-            metadata = extract_game_metadata(resolved.name)
+            folder_platform = self._infer_platform_from_path(resolved, root_resolved)
+            metadata = extract_game_metadata(
+                resolved.name,
+                folder_platform=folder_platform,
+            )
             full_path = str(resolved)
             discovered_paths.add(full_path)
 
@@ -115,5 +124,32 @@ class GameScanner:
     def _iter_iso_files(self, root: Path):
         iterator = root.rglob("*") if self.settings.scan_recursive else root.glob("*")
         for path in iterator:
-            if path.is_file() and path.suffix.lower() == ".iso":
+            if not path.is_file():
+                continue
+
+            lower_name = path.name.lower()
+            lower_ext = path.suffix.lower()
+
+            if lower_name in IGNORED_FILENAMES:
+                continue
+            if lower_name.startswith(IGNORED_FILENAME_PREFIXES):
+                continue
+            if lower_ext in IGNORED_EXTENSIONS:
+                continue
+
+            if lower_ext in SUPPORTED_EXTENSIONS:
                 yield path
+
+    def _infer_platform_from_path(self, path: Path, root_resolved: Path) -> str:
+        try:
+            relative_parts = [part.upper() for part in path.resolve().relative_to(root_resolved).parts]
+        except Exception:  # noqa: BLE001
+            relative_parts = [part.upper() for part in path.parts]
+
+        if "PS3ISO" in relative_parts:
+            return "PS3"
+        if "PS2ISO" in relative_parts:
+            return "PS2"
+        if "PACKS" in relative_parts:
+            return "PACKS"
+        return "unknown"

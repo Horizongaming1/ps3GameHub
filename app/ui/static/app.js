@@ -8,6 +8,9 @@ const state = {
 const els = {
   scanBtn: document.getElementById("scanBtn"),
   refreshAllBtn: document.getElementById("refreshAllBtn"),
+  gameSearch: document.getElementById("gameSearch"),
+  gameSortBy: document.getElementById("gameSortBy"),
+  gameSortDir: document.getElementById("gameSortDir"),
   hideAppleDouble: document.getElementById("hideAppleDouble"),
   gamesTableBody: document.getElementById("gamesTableBody"),
   targetsTableBody: document.getElementById("targetsTableBody"),
@@ -21,6 +24,8 @@ const els = {
   jobTargetId: document.getElementById("jobTargetId"),
   jobAutoMount: document.getElementById("jobAutoMount"),
 };
+
+let gameSearchDebounce;
 
 async function apiFetch(path, options = {}) {
   const response = await fetch(path, {
@@ -211,7 +216,16 @@ async function loadHealth() {
 }
 
 async function loadGames() {
-  state.games = await apiFetch("/games");
+  const params = new URLSearchParams();
+  const search = (els.gameSearch.value || "").trim();
+  if (search) {
+    params.set("search", search);
+  }
+  params.set("sort_by", els.gameSortBy.value || "id");
+  params.set("sort_dir", els.gameSortDir.value || "asc");
+
+  const query = params.toString();
+  state.games = await apiFetch(`/games${query ? `?${query}` : ""}`);
   renderGames();
 }
 
@@ -353,6 +367,12 @@ document.addEventListener("click", (event) => {
 els.scanBtn.addEventListener("click", () => void triggerScan());
 els.refreshAllBtn.addEventListener("click", () => void refreshAll());
 els.hideAppleDouble.addEventListener("change", renderGames);
+els.gameSortBy.addEventListener("change", () => void loadGames());
+els.gameSortDir.addEventListener("change", () => void loadGames());
+els.gameSearch.addEventListener("input", () => {
+  clearTimeout(gameSearchDebounce);
+  gameSearchDebounce = setTimeout(() => void loadGames(), 250);
+});
 els.targetForm.addEventListener("submit", createTarget);
 els.jobForm.addEventListener("submit", createJob);
 

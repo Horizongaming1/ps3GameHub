@@ -116,6 +116,25 @@ body {
   margin-bottom: 10px;
 }
 
+.games-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(130px, 1fr)) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.games-controls input,
+.games-controls select {
+  width: 100%;
+  border: 1px solid rgba(137, 170, 189, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  font: inherit;
+  color: var(--text);
+  background: rgba(7, 23, 34, 0.65);
+}
+
 .health-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -323,5 +342,9 @@ th {
 
   .topbar-actions .btn {
     flex: 1;
+  }
+
+  .games-controls {
+    grid-template-columns: 1fr;
   }
 }

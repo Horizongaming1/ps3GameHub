@@ -37,6 +37,21 @@
       <section class="panel">
         <div class="section-head">
           <h2>Spiele</h2>
+        </div>
+        <div class="games-controls">
+          <input id="gameSearch" type="search" placeholder="Suche (Titel, Dateiname, Game-ID, Pfad)" />
+          <select id="gameSortBy">
+            <option value="id">Sortierung: ID</option>
+            <option value="title">Sortierung: Titel</option>
+            <option value="filename">Sortierung: Dateiname</option>
+            <option value="platform">Sortierung: Plattform</option>
+            <option value="size_bytes">Sortierung: Größe</option>
+            <option value="modified_at">Sortierung: Änderungsdatum</option>
+          </select>
+          <select id="gameSortDir">
+            <option value="asc">Aufsteigend</option>
+            <option value="desc">Absteigend</option>
+          </select>
           <label class="toggle">
             <input id="hideAppleDouble" type="checkbox" checked />
             <span>._ Dateien ausblenden</span>
